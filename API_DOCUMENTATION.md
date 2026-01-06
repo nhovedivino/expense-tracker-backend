@@ -151,6 +151,38 @@ Returns:
 - Net amount (savings - expenses)
 - Savings rate percentage
 
+### Total Savings
+**GET** `/analytics/total-savings`
+Headers: `Authorization: Bearer {token}`
+
+Returns:
+- Total amount of all savings
+- Count of savings entries
+- Average saving amount
+- Recent savings (last 5)
+
+### Total Monthly Expenses
+**GET** `/analytics/total-monthly-expenses?month=2024-01`
+Headers: `Authorization: Bearer {token}`
+
+Returns:
+- Total expenses for the specified month
+- Count of expenses for the month
+- Average expense amount
+- Top expense categories for the month
+
+### Total Yearly Expenses
+**GET** `/analytics/total-yearly-expenses?year=2024`
+Headers: `Authorization: Bearer {token}`
+
+Returns:
+- Total expenses for the specified year
+- Count of expenses for the year
+- Average expense amount
+- Average monthly expense
+- Monthly totals breakdown
+- Top expense categories for the year
+
 ## Response Format
 
 ### Success Response

@@ -203,4 +203,135 @@ class AnalyticsTest extends TestCase
         $response = $this->getJson('/api/analytics/savings-vs-expenses?start_date=2024-01-01&end_date=2024-01-31');
         $response->assertStatus(401);
     }
+
+    public function test_user_can_get_total_savings()
+    {
+        [$user, $token] = $this->authenticatedUser();
+        
+        // Create multiple savings
+        Saving::factory()->create([
+            'user_id' => $user->id,
+            'amount' => 1000.00
+        ]);
+        
+        Saving::factory()->create([
+            'user_id' => $user->id,
+            'amount' => 500.00
+        ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token
+        ])->getJson('/api/analytics/total-savings');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'total_savings',
+                'savings_count',
+                'average_saving',
+                'recent_savings'
+            ])
+            ->assertJson([
+                'total_savings' => 1500.00,
+                'savings_count' => 2,
+                'average_saving' => 750.00
+            ]);
+    }
+
+    public function test_user_can_get_total_monthly_expenses()
+    {
+        [$user, $token] = $this->authenticatedUser();
+        
+        // Create expenses for January 2024
+        Expense::factory()->create([
+            'user_id' => $user->id,
+            'amount' => 100.00,
+            'category' => 'Food',
+            'date' => '2024-01-15'
+        ]);
+        
+        Expense::factory()->create([
+            'user_id' => $user->id,
+            'amount' => 50.00,
+            'category' => 'Transport',
+            'date' => '2024-01-20'
+        ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token
+        ])->getJson('/api/analytics/total-monthly-expenses?month=2024-01');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'month',
+                'total_expenses',
+                'expenses_count',
+                'average_expense',
+                'top_categories'
+            ])
+            ->assertJson([
+                'month' => '2024-01',
+                'total_expenses' => 150.00,
+                'expenses_count' => 2,
+                'average_expense' => 75.00
+            ]);
+    }
+
+    public function test_user_can_get_total_yearly_expenses()
+    {
+        [$user, $token] = $this->authenticatedUser();
+        
+        // Create expenses for different months in 2024
+        Expense::factory()->create([
+            'user_id' => $user->id,
+            'amount' => 100.00,
+            'category' => 'Food',
+            'date' => '2024-01-15'
+        ]);
+        
+        Expense::factory()->create([
+            'user_id' => $user->id,
+            'amount' => 200.00,
+            'category' => 'Transport',
+            'date' => '2024-02-15'
+        ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token
+        ])->getJson('/api/analytics/total-yearly-expenses?year=2024');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'year',
+                'total_expenses',
+                'expenses_count',
+                'average_expense',
+                'average_monthly_expense',
+                'monthly_totals',
+                'top_categories'
+            ])
+            ->assertJson([
+                'year' => 2024,
+                'total_expenses' => 300.00,
+                'expenses_count' => 2,
+                'average_expense' => 150.00,
+                'average_monthly_expense' => 25.00
+            ]);
+    }
+
+    public function test_total_endpoints_require_valid_parameters()
+    {
+        [$user, $token] = $this->authenticatedUser();
+
+        // Test invalid month format
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token
+        ])->getJson('/api/analytics/total-monthly-expenses?month=invalid');
+        $response->assertStatus(422);
+
+        // Test invalid year
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token
+        ])->getJson('/api/analytics/total-yearly-expenses?year=1999');
+        $response->assertStatus(422);
+    }
 }

@@ -33,5 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/yearly', [AnalyticsController::class, 'yearlyAnalysis']);
         Route::get('/categories', [AnalyticsController::class, 'categoriesSummary']);
         Route::get('/savings-vs-expenses', [AnalyticsController::class, 'savingsVsExpenses']);
+        Route::get('/total-savings', [AnalyticsController::class, 'totalSavings']);
+        Route::get('/total-monthly-expenses', [AnalyticsController::class, 'totalMonthlyExpenses']);
+        Route::get('/total-yearly-expenses', [AnalyticsController::class, 'totalYearlyExpenses']);
     });
 });
